@@ -15,6 +15,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             count += 1;
         }
     });
+    println!("completely overlapping count {}", count);
+
+    let mut count = 0;
+    input.lines().for_each(|line| {
+        let (range1, range2) = line_to_ranges(line);
+
+        let (x1, x2) = (range1.clone().min(), range1.max());
+        let (y1, y2) = (range2.clone().min(), range2.max());
+
+        if x2 <= y2 && x2 >= y1
+            || x1 >= y1 && x1 <= y2
+            || y2 <= x2 && y2 >= x1
+            || y1 >= x1 && y1 <= x2
+        {
+            count += 1;
+        }
+    });
     println!("overlapping count {}", count);
 
     Ok(())
