@@ -27,10 +27,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .collect::<Vec<Move>>();
 
+    let crate_mover_9001: bool = true;
     for m in moves {
-        for _ in 0..m.count {
-            let char = stacks[m.from - 1].pop_front().unwrap();
-            stacks[m.to - 1].push_front(char);
+        if crate_mover_9001 && m.count > 1 {
+            let mut crates = vec![];
+            for _ in 0..m.count {
+                crates.push(stacks[m.from - 1].pop_front().unwrap());
+            }
+
+            crates.reverse();
+            for c in crates {
+                stacks[m.to - 1].push_front(c);
+            }
+        } else {
+            for _ in 0..m.count {
+                let char = stacks[m.from - 1].pop_front().unwrap();
+                stacks[m.to - 1].push_front(char);
+            }
         }
     }
 
