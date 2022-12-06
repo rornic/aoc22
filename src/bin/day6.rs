@@ -15,10 +15,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn first_distinct_window(chars: &Vec<char>, n: usize) -> usize {
-    let windows = chars.windows(n).collect::<Vec<&[char]>>();
-
     let mut start_index = 0;
+
+    // Iterate over all overlapping windows of size `n`
+    let windows = chars.windows(n).collect::<Vec<&[char]>>();
     for (i, window) in windows.iter().cloned().enumerate() {
+        // Collect the whole window into a set to detect duplicates.
         let set = window.iter().cloned().collect::<HashSet<char>>();
         if set.len() == n {
             start_index = i + n;
