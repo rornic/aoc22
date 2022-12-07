@@ -4,7 +4,6 @@ use aoc22::input::read_input;
 
 #[derive(Debug)]
 struct File {
-    name: String,
     size: usize,
 }
 
@@ -21,24 +20,53 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut total_sum = 0;
     for k in file_system.keys() {
-        let sum: usize = directory_size(k, &file_system);
+        let sum: usize = directory_size(k, &file_system, true);
         if sum <= 100000 {
             total_sum += sum;
         }
     }
     println!("sum of small dirs {}", total_sum);
 
+    let total_used_space = directory_size("/", &file_system, true);
+    let remaining_space = 70000000 - total_used_space;
+    let space_needed = 30000000 - remaining_space;
+    let size_of_smallest_possible_dir = file_system
+        .iter()
+        .map(|(k, _)| {
+            vec![
+                directory_size(k, &file_system, true),
+                directory_size(k, &file_system, false),
+            ]
+        })
+        .flatten()
+        .filter(|size| *size >= space_needed)
+        .min()
+        .unwrap();
+    println!(
+        "size of smallest dir to delete {}",
+        size_of_smallest_possible_dir
+    );
+
     Ok(())
 }
 
-fn directory_size(directory: &str, file_system: &HashMap<String, DirectoryContents>) -> usize {
+fn directory_size(
+    directory: &str,
+    file_system: &HashMap<String, DirectoryContents>,
+    recurse: bool,
+) -> usize {
     let dir = file_system.get(directory).unwrap();
-    return dir.files.iter().map(|f| f.size).sum::<usize>()
+    let file_sum = dir.files.iter().map(|f| f.size).sum::<usize>();
+    if !recurse {
+        return file_sum;
+    }
+
+    file_sum
         + dir
             .sub_directories
             .iter()
-            .map(|d| directory_size(d, file_system))
-            .sum::<usize>();
+            .map(|d| directory_size(d, file_system, true))
+            .sum::<usize>()
 }
 
 fn parse_filesystem(input: String) -> HashMap<String, DirectoryContents> {
@@ -77,10 +105,7 @@ fn parse_filesystem(input: String) -> HashMap<String, DirectoryContents> {
                 .sub_directories
                 .push(format!("{}/{}", current_dir, parts[1]));
         } else if let Ok(size) = parts[0].parse::<usize>() {
-            dir_contents.files.push(File {
-                name: parts[1].to_string(),
-                size: size,
-            });
+            dir_contents.files.push(File { size: size });
         }
     }
 
