@@ -17,7 +17,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input = read_input("day7")?;
 
     let file_system: HashMap<String, DirectoryContents> = parse_filesystem(input);
-
     let mut total_sum = 0;
     for k in file_system.keys() {
         let sum: usize = directory_size(k, &file_system, true);
@@ -27,6 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!("sum of small dirs {}", total_sum);
 
+    // A bunch of rushed hardcoded calculations
     let total_used_space = directory_size("/", &file_system, true);
     let remaining_space = 70000000 - total_used_space;
     let space_needed = 30000000 - remaining_space;
@@ -50,6 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+// Calculates a directory size either recursively (incl. sub-dirs) or just from the files in it.
 fn directory_size(
     directory: &str,
     file_system: &HashMap<String, DirectoryContents>,
@@ -69,6 +70,8 @@ fn directory_size(
             .sum::<usize>()
 }
 
+// Parses a list of commands (excluding the first cd /) into a map of
+// directory name to directory contents
 fn parse_filesystem(input: String) -> HashMap<String, DirectoryContents> {
     let mut directories: HashMap<String, DirectoryContents> = HashMap::new();
 
@@ -92,7 +95,6 @@ fn parse_filesystem(input: String) -> HashMap<String, DirectoryContents> {
             _ => (),
         }
 
-        // Parse files / subdirs if it wasn't a command
         let dir_contents = directories
             .entry(current_dir.clone())
             .or_insert(DirectoryContents {
@@ -100,6 +102,7 @@ fn parse_filesystem(input: String) -> HashMap<String, DirectoryContents> {
                 sub_directories: vec![],
             });
 
+        // Fills up the current directory if it wasn't a command
         if parts[0] == "dir" {
             dir_contents
                 .sub_directories
