@@ -20,8 +20,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let trees_visible = visibility_map.into_iter().flatten().filter(|b| *b).count();
+    let trees_visible = visibility_map.iter().flatten().filter(|b| **b).count();
     println!("{} trees visible from outside grid", trees_visible);
+
+    let mut scenic_scores: Vec<u32> = vec![];
+    for row in 0..rows {
+        for col in 0..cols {
+            scenic_scores.push(scenic_score(row, col, &heightmap, &visibility_map));
+        }
+    }
+
+    let highest_scenic_score = scenic_scores.iter().max().unwrap();
+    println!("highest scenic score is {}", highest_scenic_score);
 
     Ok(())
 }
@@ -48,4 +58,62 @@ fn is_visible(row: usize, col: usize, heightmap: &Vec<Vec<u32>>) -> bool {
         .into_iter()
         .all(|i| heightmap[row][i] < height);
     visible
+}
+
+fn scenic_score(
+    row: usize,
+    col: usize,
+    heightmap: &Vec<Vec<u32>>,
+    visibility_map: &Vec<Vec<bool>>,
+) -> u32 {
+    if !visibility_map[row][col] {
+        return 1;
+    }
+
+    let rows = heightmap.len();
+    let cols = heightmap[0].len();
+
+    let val = heightmap[row][col];
+
+    // up
+    let mut furthest = 0;
+    for i in (0..row).rev() {
+        furthest = row - i;
+        if heightmap[i][col] >= val {
+            break;
+        }
+    }
+    let mut score = furthest;
+
+    // down
+    furthest = 0;
+    for i in row + 1..rows {
+        furthest += 1;
+        if heightmap[i][col] >= val {
+            break;
+        }
+    }
+    score *= furthest;
+
+    // left
+    furthest = 0;
+    for i in (0..col).rev() {
+        furthest = col - i;
+        if heightmap[row][i] >= val {
+            break;
+        }
+    }
+    score *= furthest;
+
+    // right
+    furthest = 0;
+    for i in col + 1..cols {
+        furthest = i - col;
+        if heightmap[row][i] >= val {
+            break;
+        }
+    }
+    score *= furthest;
+
+    score as u32
 }
