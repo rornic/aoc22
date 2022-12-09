@@ -11,42 +11,39 @@ struct Move {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let input = read_input("day9")?;
 
-    let moves: Vec<Move> = input
-        .lines()
-        .map(|l| {
-            let parts: Vec<&str> = l.split(" ").collect();
-            let mut val = parts[1].parse::<i32>().unwrap();
-            if parts[0] == "D" || parts[0] == "L" {
-                val = -val;
-            }
-
-            if parts[0] == "L" || parts[0] == "R" {
-                Move { x: val, y: 0 }
-            } else {
-                Move { x: 0, y: val }
-            }
-        })
-        .collect();
-
-    let mut head: (i32, i32) = (0, 0);
-    let mut tail: (i32, i32) = (0, 0);
-    let mut visited: HashSet<(i32, i32)> = HashSet::new();
-    visited.insert(tail);
-    moves.iter().for_each(|m| {
-        for _ in 0..m.x.abs() {
-            head.0 += m.x.signum();
-            tail = move_toward_head(tail, head);
-            visited.insert(tail);
-        }
-        for _ in 0..m.y.abs() {
-            head.1 += m.y.signum();
-            tail = move_toward_head(tail, head);
-            visited.insert(tail);
-        }
-    });
-    println!("unique tail positions {}", visited.len());
+    let moves = parse_moves(input);
+    simulate_rope(&moves, 2);
+    simulate_rope(&moves, 10);
 
     Ok(())
+}
+
+fn simulate_rope(moves: &Vec<Move>, length: usize) {
+    let mut knots = vec![(0, 0); length];
+
+    let mut visited: HashSet<(i32, i32)> = HashSet::new();
+    visited.insert(*knots.last().unwrap());
+    moves.iter().for_each(|m| {
+        for _ in 0..m.x.abs() {
+            knots[0].0 += m.x.signum();
+            for i in 1..knots.len() {
+                knots[i] = move_toward_head(knots[i], knots[i - 1]);
+            }
+            visited.insert(*knots.last().unwrap());
+        }
+        for _ in 0..m.y.abs() {
+            knots[0].1 += m.y.signum();
+            for i in 1..knots.len() {
+                knots[i] = move_toward_head(knots[i], knots[i - 1]);
+            }
+            visited.insert(*knots.last().unwrap());
+        }
+    });
+    println!(
+        "unique tail positions for rope of length {}: {}",
+        length,
+        visited.len()
+    );
 }
 
 fn move_toward_head(tail: (i32, i32), head: (i32, i32)) -> (i32, i32) {
@@ -66,4 +63,23 @@ fn move_toward_head(tail: (i32, i32), head: (i32, i32)) -> (i32, i32) {
     }
 
     return tail;
+}
+
+fn parse_moves(input: String) -> Vec<Move> {
+    input
+        .lines()
+        .map(|l| {
+            let parts: Vec<&str> = l.split(" ").collect();
+            let mut val = parts[1].parse::<i32>().unwrap();
+            if parts[0] == "D" || parts[0] == "L" {
+                val = -val;
+            }
+
+            if parts[0] == "L" || parts[0] == "R" {
+                Move { x: val, y: 0 }
+            } else {
+                Move { x: 0, y: val }
+            }
+        })
+        .collect()
 }
