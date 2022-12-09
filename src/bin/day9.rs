@@ -24,6 +24,7 @@ fn simulate_rope(moves: &Vec<Move>, length: usize) {
     let mut visited: HashSet<(i32, i32)> = HashSet::new();
     visited.insert(*knots.last().unwrap());
     moves.iter().for_each(|m| {
+        // Could probably simplify this duplication with mutable references
         for _ in 0..m.x.abs() {
             knots[0].0 += m.x.signum();
             for i in 1..knots.len() {
