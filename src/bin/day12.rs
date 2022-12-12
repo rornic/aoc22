@@ -1,4 +1,4 @@
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap};
 
 use aoc22::input::read_input;
 
@@ -8,6 +8,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let shortest_path_steps = dijkstra(start, end, &heightmap);
     println!("shortest path to end is {} steps", shortest_path_steps);
+
+    let mut lowest_elevations = Vec::new();
+    for row in 0..heightmap.len() {
+        for col in 0..heightmap[0].len() {
+            if heightmap[row][col] == 'a' as u32 {
+                lowest_elevations.push((row, col));
+            }
+        }
+    }
+
+    let shortest_path_from_any_low = lowest_elevations
+        .iter()
+        .map(|s| dijkstra(*s, end, &heightmap))
+        .min()
+        .unwrap();
+    println!(
+        "shortest path to end from any low elevation is {} steps",
+        shortest_path_from_any_low
+    );
 
     Ok(())
 }
@@ -44,11 +63,6 @@ fn dijkstra(start: Pos, end: Pos, heightmap: &Heightmap) -> u32 {
             if pos != start {
                 dist.insert(pos, u32::MAX - 1);
             }
-
-            // heap.push(State {
-            //     pos,
-            //     cost: u32::MAX - 1,
-            // });
         }
     }
     heap.push(State {
@@ -76,8 +90,7 @@ fn dijkstra(start: Pos, end: Pos, heightmap: &Heightmap) -> u32 {
             }
         });
     }
-
-    panic!("no path found")
+    return *dist.get(&end).unwrap();
 }
 
 fn adjacent(pos: Pos, heightmap: &Heightmap) -> Vec<Pos> {
